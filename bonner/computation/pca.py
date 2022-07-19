@@ -69,35 +69,35 @@ class _BasePCA:
         precision.flatten()[:: len(precision) + 1] += 1 / self.noise_variance_
         return precision
 
-    def transform(self, X: torch.Tensor) -> torch.Tensor:
-        X = X.to(self.device)
+    def transform(self, x: torch.Tensor) -> torch.Tensor:
+        x = x.to(self.device)
         if self.mean_ is not None:
-            X = X - self.mean_
-        X_transformed = torch.matmul(X, self.components_.transpose(0, 1))
+            x = x - self.mean_
+        x_transformed = torch.matmul(x, self.components_.transpose(0, 1))
         if self.whiten:
-            X_transformed /= torch.sqrt(self.explained_variance_)
-        return X_transformed
+            x_transformed /= torch.sqrt(self.explained_variance_)
+        return x_transformed
 
     def inverse_transform(
-        self, X: torch.Tensor, n_components: int = None
+        self, x: torch.Tensor, n_components: int = None
     ) -> torch.Tensor:
         if n_components is None:
             if self.whiten:
                 return (
                     torch.matmul(
-                        X,
+                        x,
                         torch.sqrt(self.explained_variance_.unsqueeze(-1))
                         * self.components_,
                     )
                     + self.mean_
                 )
             else:
-                return torch.matmul(X, self.components_) + self.mean_
+                return torch.matmul(x, self.components_) + self.mean_
         else:
             if self.whiten:
                 return (
                     torch.matmul(
-                        X[:, :n_components],
+                        x[:, :n_components],
                         torch.sqrt(
                             self.explained_variance_[:n_components].unsqueeze(-1)
                         )
@@ -108,7 +108,7 @@ class _BasePCA:
             else:
                 return (
                     torch.matmul(
-                        X[:, :n_components], self.components_[:n_components, :]
+                        x[:, :n_components], self.components_[:n_components, :]
                     )
                     + self.mean_
                 )
@@ -120,17 +120,17 @@ class PCA(_BasePCA):
     https://github.com/scikit-learn/scikit-learn/blob/37ac6788c9504ee409b75e5e24ff7d86c90c2ffb/sklearn/decomposition/_pca.py#L116
     """
 
-    def fit(self, X: torch.Tensor) -> None:
-        self.n_samples_, self.n_features_ = X.shape
+    def fit(self, x: torch.Tensor) -> None:
+        self.n_samples_, self.n_features_ = x.shape
         if self.n_components_ is None:
             self.n_components_ = min(self.n_samples_, self.n_features_)
 
-        X = X.to(self.device)
-        self.mean_ = torch.mean(X, dim=0)
+        x = x.to(self.device)
+        self.mean_ = torch.mean(x, dim=0)
 
-        X -= self.mean_
+        x -= self.mean_
 
-        u, s, v_h = torch.linalg.svd(X, full_matrices=False)
+        u, s, v_h = torch.linalg.svd(x, full_matrices=False)
         u, v_h = _svd_flip(u, v_h)
         explained_variance = (s**2) / (self.n_samples_ - 1)
 
@@ -140,10 +140,10 @@ class PCA(_BasePCA):
             explained_variance / explained_variance.sum()
         )[: self.n_components_]
         self.singular_values_ = s[: self.n_components_]
-        if self.n_components_ < X.shape[1]:
+        if self.n_components_ < x.shape[1]:
             self.noise_variance_ = explained_variance[self.n_components_ :].mean()
         else:
-            self.noise_variance_ = 0.0
+            self.noise_variance_ = 0
 
 
 class IncrementalPCA(_BasePCA):
@@ -159,51 +159,51 @@ class IncrementalPCA(_BasePCA):
         self._batch_size = None
         self.n_samples_seen_ = None
 
-    def fit_partial(self, X: torch.Tensor) -> None:
-        X = X.to(self.device)
+    def fit_partial(self, x: torch.Tensor) -> None:
+        x = x.to(self.device)
         if not self._initialized:
-            self._initialize_from(X)
-        n_feats = X.size(1)
+            self._initialize_from(x)
+        n_feats = x.size(1)
 
-        new_mean, new_var, new_n_samples_seen = self._incremental_mean_and_var(X)
+        new_mean, new_var, new_n_samples_seen = self._incremental_mean_and_var(x)
 
         # Whitening
         if self.n_samples_seen_ == 0:
             # If this is the first step, simply whitten X
-            X -= new_mean
+            x -= new_mean
         else:
-            batch_mean = X.mean(dim=0)
-            X -= batch_mean
+            batch_mean = x.mean(dim=0)
+            x -= batch_mean
             # Build matrix of combined previous basis and new data
             mean_correction = np.sqrt(
-                (self.n_samples_seen_ / new_n_samples_seen) * X.size(0)
+                (self.n_samples_seen_ / new_n_samples_seen) * x.size(0)
             ) * (self.mean_ - batch_mean)
-            X = torch.vstack(
+            x = torch.vstack(
                 [
                     self.singular_values_.reshape(-1, 1) * self.components_,
-                    X,
+                    x,
                     mean_correction,
                 ]
             )
 
-        U, S, Vt = torch.linalg.svd(X, full_matrices=False)
-        U, Vt = _svd_flip(U, Vt, u_based_decision=False)
-        S_squared = S**2
-        explained_variance = S_squared / (new_n_samples_seen - 1)
-        explained_variance_ratio = S_squared / torch.sum(new_var * new_n_samples_seen)
+        u, s, v_t = torch.linalg.svd(x, full_matrices=False)
+        u, v_t = _svd_flip(u, v_t, u_based_decision=False)
+        s_squared = s**2
+        explained_variance = s_squared / (new_n_samples_seen - 1)
+        explained_variance_ratio = s_squared / torch.sum(new_var * new_n_samples_seen)
 
         self.mean_ = new_mean
         self.var_ = new_var
         self.n_samples_seen_ = new_n_samples_seen
 
-        self.components_ = Vt[: self.n_components_]
-        self.singular_values_ = S[: self.n_components_]
+        self.components_ = v_t[: self.n_components_]
+        self.singular_values_ = s[: self.n_components_]
         self.explained_variance_ = explained_variance[: self.n_components_]
         self.explained_variance_ratio_ = explained_variance_ratio[: self.n_components_]
         if self.n_components_ < n_feats:
             self.noise_variance_ = explained_variance[self.n_components_ :].mean()
         else:
-            self.noise_variance_ = 0.0
+            self.noise_variance_ = 0
 
     def _initialize_from(self, X: torch.Tensor) -> None:
         assert X.ndim == 2

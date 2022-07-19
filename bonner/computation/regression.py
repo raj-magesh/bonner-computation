@@ -68,12 +68,12 @@ class RidgeRegression:
         if self.fit_intercept:
             x = torch.cat([torch.ones(x.shape[0], 1, device=self.device_), x], dim=1)
 
-        lhs = x.T @ x
+        lhs = x.T @ x  # FIXME I don't think this is correct
         rhs = x.T @ y
         if self.regularization == 0:
             self.w, _ = torch.lstsq(rhs, lhs)
         else:
-            ridge = self.regularization * torch.eye(lhs.shape[0], device=self.device)
+            ridge = self.regularization * torch.eye(lhs.shape[0], device=self.device_)
             self.w, _ = torch.lstsq(rhs, lhs + ridge)
 
     def predict(self, x: torch.tensor) -> torch.Tensor:
