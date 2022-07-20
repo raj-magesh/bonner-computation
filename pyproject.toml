@@ -29,7 +29,7 @@ classifiers = [
     "Typing :: Typed",
     "Environment :: GPU",
 ]
-urls = {repository = "https://github.com/raj-magesh/bonner-computation"}
+urls = {repository = "https://github.com/BonnerLab/bonner-computation"}
 dependencies = [
     "numpy",
     "torch",
