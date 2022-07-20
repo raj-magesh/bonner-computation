@@ -1,5 +1,6 @@
-from typing import Union
+from typing import List, Union
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -131,3 +132,23 @@ class LogisticRegression(nn.Module):
         labels = torch.argmax(scores, dim=1)
         if output == "labels":
             return labels.detach().cpu()
+
+
+def r2_score(y: torch.Tensor, y_predicted: torch.Tensor) -> torch.Tensor:
+    sse = ((y - y_predicted) ** 2).sum(dim=-2)
+    ss = ((y - y.mean(dim=-2, keepdim=True)) ** 2).sum(dim=-2)
+    r2 = 1 - sse / ss
+    return r2
+
+
+def create_splits(
+    n: int, *, n_folds: int = 5, shuffle: bool = True
+) -> List[np.ndarray]:
+    if shuffle:
+        rng = np.random.default_rng(seed=0)
+        indices = rng.permutation(n)
+    else:
+        indices = np.arange(n)
+
+    x = np.array_split(indices, n_folds)
+    return x
