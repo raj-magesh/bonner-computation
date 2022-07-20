@@ -1,6 +1,8 @@
 from typing import List, Union
 
 import numpy as np
+import numpy.typing as npt
+import xarray as xr
 import torch
 import torch.nn as nn
 
