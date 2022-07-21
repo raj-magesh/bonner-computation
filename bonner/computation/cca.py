@@ -1,5 +1,5 @@
 import itertools
-from typing import Mapping, Any, List, Union, Tuple
+from typing import Any
 
 import torch
 
@@ -7,7 +7,8 @@ from .corrcoef import corrcoef
 
 
 class CCAPytorch:
-    """Based on pyrcca's _CCABase class https://github.com/gallantlab/pyrcca/blob/main/rcca/rcca.py#L13"""
+    """Based on pyrcca's _CCABase class https://github.com/gallantlab/pyrcca/blob/main/rcca/rcca.py#L13
+    """
 
     """Based on sklearn's CCA class https://github.com/scikit-learn/scikit-learn/blob/baf828ca1/sklearn/cross_decomposition/_pls.py#L801"""
 
@@ -18,8 +19,8 @@ class CCAPytorch:
         scale: bool = True,
         tol: float = 1e-15,
         dtype: torch.dtype = torch.float64,
-        device: Union[str, torch.device] = None,
-        kwargs_kernel: Mapping[str, Any] = None,
+        device: torch.device | str | None = None,
+        kwargs_kernel: dict[str, Any] = None,
     ) -> None:
         """Initialize the CCA class.
 
@@ -34,7 +35,7 @@ class CCAPytorch:
         :param device: torch.device, defaults to None
         :type device: Union[str, torch.device], optional
         :param kwargs_kernel: kernel arguments, defaults to None
-        :type kwargs_kernel: Mapping[str, Any], optional
+        :type kwargs_kernel: dict[str, Any], optional
         """
         self.alpha = alpha
         self.n_components = n_components
@@ -47,7 +48,7 @@ class CCAPytorch:
         self._means = []
         self._stds = []
 
-    def _center_scale(self, data: List[torch.Tensor]) -> List[torch.Tensor]:
+    def _center_scale(self, data: list[torch.Tensor]) -> list[torch.Tensor]:
         self._means = [d.mean(dim=0).to(self.device).to(self.dtype) for d in data]
         if self.scale:
             self._stds = []
@@ -64,11 +65,11 @@ class CCAPytorch:
         data = [(d - mean) / std for d, mean, std in zip(data, self._means, self._stds)]
         return data
 
-    def fit(self, data: List[torch.Tensor]) -> None:
+    def fit(self, data: list[torch.Tensor]) -> None:
         """Fit the CCA model.
 
         :param data: list of tensors of shape (n_samples, n_features); n_samples must be the same for all tensors
-        :type data: List[torch.Tensor]
+        :type data: list[torch.Tensor]
         """
         data = [d.to(self.device).to(self.dtype) for d in data]
         data_preprocessed = self._center_scale(data)
@@ -89,14 +90,14 @@ class CCAPytorch:
             self._weights = self._canonical_coefficients
         self._canonical_correlations = self.compute_canonical_correlations(data)
 
-    def transform(self, data: List[torch.Tensor]) -> List[torch.Tensor]:
+    def transform(self, data: list[torch.Tensor]) -> list[torch.Tensor]:
         data = [
             (d.to(self.device).to(self.dtype) - mean) / std
             for d, mean, std in zip(data, self._means, self._stds)
         ]
         return [torch.matmul(d, w) for d, w in zip(data, self._weights)]
 
-    def compute_canonical_correlations(self, data: List[torch.Tensor]) -> torch.Tensor:
+    def compute_canonical_correlations(self, data: list[torch.Tensor]) -> torch.Tensor:
         canonical_correlations = torch.zeros(
             self.n_components,
             len(data),
@@ -117,23 +118,23 @@ class CCAPytorch:
         return canonical_correlations
 
 
-#     def validate(self, data: List[torch.Tensor]) -> List[torch.Tensor]:
+#     def validate(self, data: list[torch.Tensor]) -> list[torch.Tensor]:
 #         data = self.preprocess(data)
 #         self.predictions = _compute_predictions(data, self._ws, rtol=self.tol)
 #         self.correlations = _compute_correlations(data, self.predictions)
 #         return self.correlations
 
 #     def compute_explained_variance(
-#         self, data: List[torch.Tensor]
-#     ) -> List[torch.Tensor]:
+#         self, data: list[torch.Tensor]
+#     ) -> list[torch.Tensor]:
 #         # FIXME potential bug: https://github.com/gallantlab/pyrcca/issues/20
 #         data = [d.to(self.device).float() for d in data]
 #         return _compute_explained_variance(data=data, ws=self._ws, rtol=self.tol)
 
 
 # def _compute_explained_variance(
-#     data: List[torch.Tensor], ws: List[torch.Tensor], rtol: float = 1e-15
-# ) -> List[torch.Tensor]:
+#     data: list[torch.Tensor], ws: list[torch.Tensor], rtol: float = 1e-15
+# ) -> list[torch.Tensor]:
 #     with torch.no_grad():
 #         n_cc = ws[0].shape[1]
 #         n_features = [d.shape[1] for d in data]
@@ -153,8 +154,8 @@ class CCAPytorch:
 
 
 # def _compute_predictions(
-#     data: List[torch.Tensor], ws: List[torch.Tensor], rtol: float = 1e-15
-# ) -> List[torch.Tensor]:
+#     data: list[torch.Tensor], ws: list[torch.Tensor], rtol: float = 1e-15
+# ) -> list[torch.Tensor]:
 #     with torch.no_grad():
 #         inverse_ws = [torch.linalg.pinv(w, rtol=rtol) for w in ws]
 #         c_components = torch.stack(
@@ -173,8 +174,8 @@ class CCAPytorch:
 
 
 # def _compute_correlations(
-#     data: List[torch.Tensor], predictions: List[torch.Tensor]
-# ) -> List[torch.Tensor]:
+#     data: list[torch.Tensor], predictions: list[torch.Tensor]
+# ) -> list[torch.Tensor]:
 #     with torch.no_grad():
 #         return [
 #             pairwise_corrcoef(
@@ -186,24 +187,24 @@ class CCAPytorch:
 
 
 def _compute_canonical_coefficients(
-    data: List[torch.Tensor],
+    data: list[torch.Tensor],
     alpha: float = 0.0,
     n_components: int = None,
-    kwargs_kernel: Mapping[str, Any] = None,
-    device: Union[str, torch.device] = None,
-) -> List[torch.Tensor]:
+    kwargs_kernel: dict[str, Any] = None,
+    device: torch.device | str | None = None,
+) -> list[torch.Tensor]:
     """Compute the canonical coefficients.
 
     :param data: collection of matrices of shape (n_samples, n_features), where the data are centered
-    :type data: List[torch.Tensor]
+    :type data: list[torch.Tensor]
     :param alpha: regularization parameter, defaults to 0.0
     :type alpha: float, optional
     :param n_cc: number of canonical correlations to compute, defaults to None
     :type n_cc: int, optional
     :param kwargs_kernel: arguments to be passed to _kernelize_data, defaults to None
-    :type kwargs_kernel: Mapping[str, Any], optional
+    :type kwargs_kernel: dict[str, Any], optional
     :return: TODO not sure
-    :rtype: List[torch.Tensor]
+    :rtype: list[torch.Tensor]
     """
     with torch.no_grad():
         if kwargs_kernel is not None:
@@ -253,7 +254,7 @@ def _kernelize_data(
     kernel: str = "linear",
     sigma: float = 1,
     degree: int = 2,
-    device: Union[str, torch.device] = None,
+    device: torch.device | str | None = None,
 ) -> torch.Tensor:
     """Kernelizes the input data.
     If `kernel` is "linear", the kernel is a linear inner product

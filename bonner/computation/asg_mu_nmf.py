@@ -1,4 +1,4 @@
-from typing import Tuple, Callable, Union
+from typing import Callable
 import pickle
 import pathlib
 
@@ -42,7 +42,7 @@ class AsgMuNmf(Dataset):
         n_epochs: int = 200,
         batch_size: int = 10000,
         num_workers: int = 0,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         device = "cuda" if torch.cuda.is_available() else "cpu"
         device = torch.device(device)
 
@@ -67,7 +67,7 @@ def _run_asg_mu_nmf(
     x: Dataset,
     u: torch.Tensor,
     v: torch.Tensor,
-    device: Union[torch.device, str],
+    device: torch.device | str,
     n_epochs: int,
     batch_size: int,
     num_workers: int,
@@ -104,7 +104,7 @@ def _update_u_and_v(
     x: torch.Tensor,
     u: torch.Tensor,
     v: torch.Tensor,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     u_t = u.transpose(0, 1)
     v_t = v.transpose(0, 1)
     uv = torch.mm(u, v)

@@ -1,15 +1,11 @@
-from typing import List, Union
-
 import numpy as np
-import numpy.typing as npt
-import xarray as xr
 import torch
 import torch.nn as nn
 
 
 class LinearRegression:
     def __init__(
-        self, fit_intercept: bool = True, device: Union[torch.device, str] = None
+        self, fit_intercept: bool = True, device: torch.device | str | None = None
     ) -> None:
         self.fit_intercept = fit_intercept
         self.device_ = device
@@ -145,7 +141,7 @@ def r2_score(y: torch.Tensor, y_predicted: torch.Tensor) -> torch.Tensor:
 
 def create_splits(
     n: int, *, n_folds: int = 5, shuffle: bool = True
-) -> List[np.ndarray]:
+) -> list[np.ndarray]:
     if shuffle:
         rng = np.random.default_rng(seed=0)
         indices = rng.permutation(n)

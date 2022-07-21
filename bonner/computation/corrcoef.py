@@ -1,23 +1,13 @@
-from typing import Union
-
 import torch
 
-
-def z_score(
-    x: torch.Tensor, dim: int, keepdim: bool = True, unbiased: bool = True
-) -> torch.Tensor:
-    x_mean = x.mean(dim=dim, keepdim=keepdim)
-    x_std = x.std(dim=dim, keepdim=keepdim, unbiased=unbiased)
-
-    x = (x - x_mean) / x_std
-    return x
+from .z_score import z_score
 
 
 def corrcoef(
     x: torch.Tensor,
     y: torch.Tensor = None,
     return_diagonal: bool = True,
-    device: Union[str, torch.device] = None,
+    device: torch.device | str | None = None,
 ) -> torch.Tensor:
     """A more powerful corrcoef function that computes the Pearson correlation coefficient. x and y optionally take a batch dimension (either x or y, or both; in the latter case, the pairwise correlations are broadcasted along the batch dimension). If x and y are both specified, pairwise correlations between the columns of x and those of y are computed.
     # TODO implement batching along batch dimension when n_batch is too large to fit in memory

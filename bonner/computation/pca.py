@@ -1,5 +1,3 @@
-from typing import Optional, Tuple, Union
-
 import numpy as np
 import torch
 
@@ -14,7 +12,7 @@ class _BasePCA:
         self,
         n_components: int = None,
         *,
-        device: Optional[Union[str, torch.device]] = None,
+        device: torch.device | str | None = None,
         whiten: bool = False
     ):
         self.n_components_ = n_components
@@ -226,7 +224,7 @@ class IncrementalPCA(_BasePCA):
 
     def _incremental_mean_and_var(
         self, X: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor, int]:
+    ) -> tuple[torch.Tensor, torch.Tensor, int]:
         X_sum = X.sum(dim=0)
         X_n_samples = X.size(0)
         last_sum = self.mean_ * self.n_samples_seen_
@@ -254,7 +252,7 @@ class IncrementalPCA(_BasePCA):
 
 def _svd_flip(
     u: torch.Tensor, v: torch.Tensor, u_based_decision: bool = True
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Sign correction to ensure deterministic output from SVD."""
     if u_based_decision:
         max_abs_cols = torch.argmax(torch.abs(u), dim=1)
