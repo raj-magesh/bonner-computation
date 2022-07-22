@@ -7,10 +7,10 @@ from .corrcoef import corrcoef
 
 
 class CCAPytorch:
-    """Based on pyrcca's _CCABase class https://github.com/gallantlab/pyrcca/blob/main/rcca/rcca.py#L13
-    """
+    """Based on pyrcca's _CCABase class https://github.com/gallantlab/pyrcca/blob/main/rcca/rcca.py#L13.
 
-    """Based on sklearn's CCA class https://github.com/scikit-learn/scikit-learn/blob/baf828ca1/sklearn/cross_decomposition/_pls.py#L801"""
+    Based on sklearn's CCA class https://github.com/scikit-learn/scikit-learn/blob/baf828ca1/sklearn/cross_decomposition/_pls.py#L801
+    """
 
     def __init__(
         self,
@@ -25,17 +25,11 @@ class CCAPytorch:
         """Initialize the CCA class.
 
         :param alpha: strength of regularization, defaults to 0
-        :type alpha: float, optional
         :param n_components: defaults to 2
-        :type n_components: int, optional
         :param scale: whether to standardize the data to unit variance, defaults to True
-        :type scale: bool, optional
         :param tol: tolerance, defaults to 1e-15
-        :type tol: float, optional
         :param device: torch.device, defaults to None
-        :type device: Union[str, torch.device], optional
         :param kwargs_kernel: kernel arguments, defaults to None
-        :type kwargs_kernel: dict[str, Any], optional
         """
         self.alpha = alpha
         self.n_components = n_components
@@ -69,7 +63,6 @@ class CCAPytorch:
         """Fit the CCA model.
 
         :param data: list of tensors of shape (n_samples, n_features); n_samples must be the same for all tensors
-        :type data: list[torch.Tensor]
         """
         data = [d.to(self.device).to(self.dtype) for d in data]
         data_preprocessed = self._center_scale(data)
@@ -196,15 +189,10 @@ def _compute_canonical_coefficients(
     """Compute the canonical coefficients.
 
     :param data: collection of matrices of shape (n_samples, n_features), where the data are centered
-    :type data: list[torch.Tensor]
     :param alpha: regularization parameter, defaults to 0.0
-    :type alpha: float, optional
     :param n_cc: number of canonical correlations to compute, defaults to None
-    :type n_cc: int, optional
     :param kwargs_kernel: arguments to be passed to _kernelize_data, defaults to None
-    :type kwargs_kernel: dict[str, Any], optional
     :return: TODO not sure
-    :rtype: list[torch.Tensor]
     """
     with torch.no_grad():
         if kwargs_kernel is not None:
@@ -257,23 +245,18 @@ def _kernelize_data(
     device: torch.device | str | None = None,
 ) -> torch.Tensor:
     """Kernelizes the input data.
+
     If `kernel` is "linear", the kernel is a linear inner product
     If `kernel` is "gaussian", the kernel is a Gaussian kernel, with standard deviation `sigma`
     If `kernel` is "polynomial", the kernel is a polynomial kernel with degree `degree`
 
     :param data: matrix of shape (n_samples, n_features), where the data are centered
-    :type data: torch.Tensor
     :param normalize: TODO not sure what this means, defaults to True
-    :type normalize: bool, optional
     :param kernel: kernel to be used, defaults to "linear"
-    :type kernel: str, optional
     :param sigma: standard deviation of the Gaussian kernel used, defaults to 1
-    :type sigma: float, optional
     :param degree: degree of the polynomial kernel used, defaults to 2
-    :type degree: int, optional
     :raises NotImplementedError: the Gaussian kernel is not implemented yet since torch.squareform() is not implemented
     :return: kernelized data
-    :rtype: torch.Tensor
     """
     with torch.no_grad():
         data = data.to(device)

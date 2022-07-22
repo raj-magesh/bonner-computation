@@ -3,8 +3,8 @@ import torch
 
 
 class _BasePCA:
-    """
-    Based on sklearn's _BasePCA class
+    """Based on sklearn's _BasePCA class.
+
     https://github.com/scikit-learn/scikit-learn/blob/37ac6788c9504ee409b75e5e24ff7d86c90c2ffb/sklearn/decomposition/_base.py#L19
     """
 
@@ -113,8 +113,8 @@ class _BasePCA:
 
 
 class PCA(_BasePCA):
-    """
-    Based on sklearn's PCA class
+    """Based on sklearn's PCA class.
+
     https://github.com/scikit-learn/scikit-learn/blob/37ac6788c9504ee409b75e5e24ff7d86c90c2ffb/sklearn/decomposition/_pca.py#L116
     """
 
@@ -145,8 +145,8 @@ class PCA(_BasePCA):
 
 
 class IncrementalPCA(_BasePCA):
-    """
-    Based on sklearn's IncrementalPCA class:
+    """Based on sklearn's IncrementalPCA class:
+
     https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.IncrementalPCA.html
     """
 
@@ -253,7 +253,6 @@ class IncrementalPCA(_BasePCA):
 def _svd_flip(
     u: torch.Tensor, v: torch.Tensor, u_based_decision: bool = True
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Sign correction to ensure deterministic output from SVD."""
     if u_based_decision:
         max_abs_cols = torch.argmax(torch.abs(u), dim=1)
         signs = torch.sign(u[max_abs_cols, range(u.shape[1])])

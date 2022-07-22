@@ -11,9 +11,7 @@ EPSILON = torch.finfo(torch.float32).eps
 
 
 class AsgMuNmf(Dataset):
-    """
-    AsgMuNmf performs asymmetric gradient multiplicative update nonnegative-matrix factorization
-    """
+    """AsgMuNmf performs asymmetric gradient multiplicative update nonnegative-matrix factorization."""
 
     def __init__(self, data: np.ndarray, n_components: int) -> None:
         self.data = data

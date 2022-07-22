@@ -9,20 +9,17 @@ def corrcoef(
     return_diagonal: bool = True,
     device: torch.device | str | None = None,
 ) -> torch.Tensor:
-    """A more powerful corrcoef function that computes the Pearson correlation coefficient. x and y optionally take a batch dimension (either x or y, or both; in the latter case, the pairwise correlations are broadcasted along the batch dimension). If x and y are both specified, pairwise correlations between the columns of x and those of y are computed.
+    """A more powerful corrcoef function that computes the Pearson correlation coefficient.
+
+    x and y optionally take a batch dimension (either x or y, or both; in the latter case, the pairwise correlations are broadcasted along the batch dimension). If x and y are both specified, pairwise correlations between the columns of x and those of y are computed.
     # TODO implement batching along batch dimension when n_batch is too large to fit in memory
     # TODO implement batching when n_features is too large for (n_features, n_features) to fit in memory
 
     :param x: a tensor of shape (n_batch, n_samples, n_features) or (n_samples, n_features)
-    :type x: torch.Tensor
     :param y: an optional tensor of shape (n_batch, n_samples, n_features) or (n_samples, n_features), defaults to None
-    :type y: torch.Tensor, optional
     :param return_diagonal: when both x and y are specified and have corresponding features (i.e. equal n_features), returns only the diagonal of the (n_features_x, n_features_y) pairwise correlation matrix, defaults to True
-    :type return_diagonal: bool, optional
     :param device: torch device (cpu or cuda), defaults to None
-    :type device: Union[str, torch.device], optional
     :return: Pearson correlation coefficients
-    :rtype: torch.Tensor
     """
     dim_sample_x, dim_feature_x = x.ndim - 2, x.ndim - 1
     n_samples = x.shape[dim_sample_x]
